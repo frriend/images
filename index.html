@@ -12,7 +12,7 @@
   <meta property="og:image" content="https://frriend.github.io/images/assets/og.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:url" content="https://example.com/" />
+  <meta property="og:url" content="https://frriend.github.io/images/" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="assets/favicon.png" />
@@ -71,7 +71,7 @@
     .visual { position:relative; aspect-ratio:1/1; border-radius:12px; overflow:hidden; background:var(--card); padding:10px; border:3px solid transparent; box-shadow:0 8px 24px rgba(0,0,0,.35); transition:.2s; }
     .visual img { width:100%; height:100%; object-fit:contain; display:block; }
     .choice:hover:not(:disabled) .visual { transform:translateY(-3px); box-shadow:0 14px 32px rgba(0,0,0,.45); }
-    .label { display:grid; width:44px; height:44px; margin:18px auto 0; place-items:center; border-radius:50%; background:#fff; color:#111; font-size:15px; font-weight:700; transition:.2s; }
+    .label { display:inline-grid; min-width:44px; height:44px; padding:0 16px; margin:18px auto 0; place-items:center; border-radius:99px; white-space:nowrap; background:#fff; color:#111; font-size:15px; font-weight:700; transition:.2s; }
     .choice.wrong .visual { opacity:.4; }
     .choice.wrong .label { background:#555; color:#999; }
     .choice.correct .label { background:var(--green); color:#fff; }
@@ -126,7 +126,7 @@
       .vs { margin:12px 0 14px; padding:6px 14px; font-size:15px; }
       .choices { gap:14px; }
       .visual { padding:6px; border-radius:10px; }
-      .label { width:34px; height:34px; margin-top:10px; font-size:13px; }
+      .label { min-width:34px; height:34px; padding:0 12px; margin-top:10px; font-size:13px; }
       .question { margin-top:14px; padding:10px 14px; font-size:12px; }
       .question.note { font-size:13px; line-height:1.5; }
       .reveal { margin-top:14px; padding-top:12px; }
@@ -150,7 +150,7 @@
           <h1>더 오래 살아남은<br>광고를 맞혀보세요!</h1>
           <p class="intro">다 맞추면 진짜 마케팅 고수.</p>
           <button class="primary" onclick="startGame()">테스트 시작하기</button>
-          <p class="stat">게재 기간은 광고 성과의 확정값이 아니라, 더 살펴볼 가치가 있는 운영 신호입니다.</p>
+          <p class="stat">게재기간이 긴 광고는 그만큼 성과 효율이 좋다는 신호가 됩니다.</p>
         </div>
       </div>
     </section>
@@ -163,7 +163,7 @@
           <p class="question" id="question">더 오래 게재된 위닝광고를 선택하세요</p>
           <h2 class="brandname" id="brandname"></h2>
           <p class="date" id="date"></p>
-          <div class="vs" id="vs">A VS B</div>
+          <div class="vs" id="vs"></div>
           <div class="choices" id="choices"></div>
           <div class="reveal" id="reveal"></div>
           <div class="next" id="next"><button class="primary full" onclick="nextQuestion()" id="nextBtn">다음 문제</button></div>
@@ -257,7 +257,7 @@
       $('dots').innerHTML=questions.map((_,k)=>`<i class="${k<index?(log[k]?'ok':'no'):k===index?'cur':''}"></i>`).join('');
       $('brandname').textContent=x.brand.split(' ')[0];
       $('date').textContent=`게재일자: ${x.date}.`;
-      $('vs').textContent='A VS B';
+      const d=[x.a.days,x.b.days].sort((p,q)=>q-p); $('vs').textContent=`${d[0]}일 VS ${d[1]}일`;
       $('question').textContent='더 오래 게재된 위닝광고를 선택하세요'; $('question').className='question';
       $('reveal').className='reveal'; $('next').className='next';
       $('nextBtn').textContent=index===questions.length-1?'결과 보기':'다음 문제';
@@ -268,8 +268,7 @@
       if(answered) return; answered=true;
       const x=questions[index], correct=key===x.correct; log[index]=correct;
       if(correct){score++; streak++; best=Math.max(best,streak);} else streak=0;
-      document.querySelectorAll('#choices .choice').forEach(el=>{const k=el.dataset.key; el.disabled=true; el.classList.add(k===x.correct?'correct':'wrong'); if(k===key)el.classList.add('selected');});
-      $('vs').textContent=`${x.a.days}일 VS ${x.b.days}일`;
+      document.querySelectorAll('#choices .choice').forEach(el=>{const k=el.dataset.key; el.disabled=true; el.classList.add(k===x.correct?'correct':'wrong'); if(k===key)el.classList.add('selected'); el.querySelector('.label').textContent=`${k.toUpperCase()} · ${x[k].days}일`;});
       $('reveal').innerHTML=`
         <strong><em class="${correct?'':'bad'}">${correct?'정답':'오답'}</em>${correct?'정답이에요!':'정답은 '+x.correct.toUpperCase()+'예요.'}</strong>
         <div class="race" id="race">${['a','b'].map(k=>`<div class="row"><span>${k.toUpperCase()}</span><div class="bar ${k===x.correct?'top':''}" style="--w:${Math.max(18,x[k].days/Math.max(x.a.days,x.b.days)*100)}%"><i></i><span>${x[k].days}일 게재</span></div></div>`).join('')}</div>`;
