@@ -78,7 +78,7 @@
     .choices { display:grid; grid-template-columns:1fr 1fr; gap:24px; width:100%; }
     .choice { padding:0; border:0; background:transparent; color:inherit; text-align:center; min-width:0; }
     .choice:disabled { cursor:default; }
-    .visual { position:relative; aspect-ratio:1/1; border-radius:12px; overflow:hidden; background:var(--card); padding:10px; border:3px solid transparent; box-shadow:0 8px 24px rgba(0,0,0,.35); transition:.2s; }
+    .visual { position:relative; aspect-ratio:1/1; border-radius:12px; overflow:hidden; background:var(--card); padding:0; border:3px solid transparent; box-shadow:0 8px 24px rgba(0,0,0,.35); transition:.2s; }
     .visual img { width:100%; height:100%; object-fit:contain; display:block; }
     .choice:hover:not(:disabled) .visual { transform:translateY(-3px); box-shadow:0 14px 32px rgba(0,0,0,.45); }
     .label { display:inline-grid; min-width:44px; height:44px; padding:0 16px; margin:18px auto 0; place-items:center; border-radius:99px; white-space:nowrap; background:#fff; color:#111; font-size:15px; font-weight:700; transition:.2s; }
@@ -135,7 +135,7 @@
       .date { font-size:13px; }
       .vs { margin:12px 0 14px; padding:6px 14px; font-size:15px; }
       .choices { gap:14px; }
-      .visual { padding:6px; border-radius:10px; }
+      .visual { padding:0; border-radius:10px; }
       .label { min-width:34px; height:34px; padding:0 12px; margin-top:10px; font-size:13px; }
       .question { margin-top:14px; padding:10px 14px; font-size:12px; }
       .question.note { font-size:13px; line-height:1.5; }
@@ -147,6 +147,8 @@
       .next .primary { padding:14px 24px; font-size:15px; }
     }
     @media (min-width:600px){ h1 { font-size:44px; } .brandname { font-size:36px; } .choices { gap:32px; } }
+    /* 넓은 화면에서는 광고 카드를 더 크게 */
+    @media (min-width:900px){ #game .wrap { max-width:860px; } }
     @media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} .dist i{height:var(--h)!important} .race .bar i{width:var(--w)!important} .race .bar span{opacity:1!important} }
   </style>
 </head>
@@ -313,10 +315,22 @@
     async function shareGame(){
       const t=TYPES.find(t=>score>=t.min); track('share_clicked',{score, result_type:t.name});
       const text=`광고 생존 감별 테스트 ${score}/${questions.length}, 나는 "${t.name}" 마케터. 실제로 더 오래 게재된 광고, 당신도 맞혀보세요.`;
+      // OS/브라우저 기본 공유 시트를 먼저 시도
+      if(navigator.share){
+        try{
+          await navigator.share({title:document.title, text, url:location.href});
+          track('share_completed',{score, result_type:t.name, method:'web_share'});
+          return;
+        }catch(e){
+          if(e && e.name==='AbortError') return; // 사용자가 공유 시트를 닫음
+        }
+      }
+      // 공유 시트를 쓸 수 없으면 링크 복사로 폴백
       const payload=`${text}\n${location.href}`;
       let ok=false;
       try{ await navigator.clipboard.writeText(payload); ok=true; }catch(e){}
       if(!ok){ try{ const ta=document.createElement('textarea'); ta.value=payload; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); ok=document.execCommand('copy'); ta.remove(); }catch(e){} }
+      if(ok) track('share_completed',{score, result_type:t.name, method:'clipboard'});
       const tt=$('toast'); tt.textContent=ok?'링크를 복사했어요':'복사에 실패했어요. 주소창의 링크를 직접 복사해주세요.'; tt.classList.add('on'); setTimeout(()=>tt.classList.remove('on'),1800);
     }
 
