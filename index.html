@@ -78,8 +78,8 @@
     .choices { display:grid; grid-template-columns:1fr 1fr; gap:24px; width:100%; }
     .choice { padding:0; border:0; background:transparent; color:inherit; text-align:center; min-width:0; }
     .choice:disabled { cursor:default; }
-    .visual { position:relative; aspect-ratio:1/1; border-radius:12px; overflow:hidden; background:var(--card); padding:0; border:3px solid transparent; box-shadow:0 8px 24px rgba(0,0,0,.35); transition:.2s; }
-    .visual img { width:100%; height:100%; object-fit:contain; display:block; }
+    .visual { position:relative; aspect-ratio:var(--ar,1/1); border-radius:12px; overflow:hidden; background:var(--card); padding:0; border:3px solid transparent; box-shadow:0 8px 24px rgba(0,0,0,.35); transition:.2s; }
+    .visual img, .visual video { width:100%; height:100%; object-fit:contain; display:block; }
     .choice:hover:not(:disabled) .visual { transform:translateY(-3px); box-shadow:0 14px 32px rgba(0,0,0,.45); }
     .label { display:inline-grid; min-width:44px; height:44px; padding:0 16px; margin:18px auto 0; place-items:center; border-radius:99px; white-space:nowrap; background:#fff; color:#111; font-size:15px; font-weight:700; transition:.2s; }
     .choice.wrong .visual { opacity:.4; }
@@ -115,6 +115,7 @@
     .miss { margin:16px 0 0; font-size:13px; color:#c8c8c8; line-height:1.5; word-break:keep-all; }
     .review { display:grid; gap:6px; margin-top:32px; text-align:left; }
     .review h3 { margin:0 0 8px; font-size:13px; color:var(--muted); font-weight:700; }
+    .review h3 em { font-style:normal; font-weight:500; color:#6f6f6f; }
     .review a { display:grid; grid-template-columns:24px 1fr auto; gap:10px; align-items:center; padding:12px 0; border-bottom:1px solid var(--line); color:inherit; text-decoration:none; font-size:13px; font-weight:600; }
     .review a span { width:20px; height:20px; border-radius:50%; display:grid; place-items:center; color:#fff; font-size:10px; }
     .review a small { color:var(--muted); font-weight:500; }
@@ -215,7 +216,7 @@
 
     // 각 광고에 img 경로를 넣으면 썸네일 표시, 없으면 그라데이션 폴백.
     // 예) a:{img:'assets/q1-a.jpg', head:'...', ...}
-    const questions = [
+    const POOL = [
       {cat:'EDU · META AD', brand:'노트폴리오 Notefolio', date:'2026.07.31', g:['#e8ddff','#6b4be0'],
        a:{img:'assets/q1-a.jpg', head:'AI로 완성하는 브랜딩 실무 워크숍', copy:'신세계, 아모레와 협업한 디자이너의 AI로 완성하는 브랜딩 실무 워크숍 (OFFLINE · 8WEEK)', cta:'더 알아보기', days:11},
        b:{img:'assets/q1-b.jpg', head:'8주 완성! AI로 완성하는 브랜딩 + 패키지 워크숍', copy:'AI로 브랜드 컨셉부터 로고, 패키지, 룩북까지! 8주 완성! AI로 완성하는 브랜딩 + 패키지 워크숍', cta:'더 알아보기', days:5},
@@ -240,6 +241,26 @@
         a:{img:'assets/q6-a.jpg', head:'OO OO 도입 후 신당에서 리뷰 수 1위 달성', copy:'OO OO 도입 후 신당에서 리뷰 수 1위 달성 (신당 카페 사장님) 리뷰 써 주시고', cta:'더 알아보기', days:27},
        b:{img:'assets/q6-b.jpg', head:'돈 안 쓰고 리뷰 수 30배 불린 비결', copy:'돈 안 쓰고 리뷰 수 30배 불린 비결 (신당 카페 사장님) 리뷰 써 주시고', cta:'더 알아보기', days:6},
        correct:'a', note:"'리뷰 수 1위 달성'처럼 구체적 성과를 내세운 문구가 '비결'형 호기심 유발 문구보다 오래 살아남았습니다. 같은 영상, 같은 상하 분할 레이아웃에서 헤드카피 한 줄이 결과를 갈랐습니다."},
+      {cat:'BEAUTY · META AD', brand:'달바 dAlba', date:'2026.01.29', g:['#fff4d9','#c99a2e'],
+       a:{video:'assets/q7-a.mp4', img:'assets/q7-a.webp', head:'화장만으로 안 가려진다면?', copy:'화장만으로 안 가려진다면? 기초부터 케어하는 기미 케어 루틴 — 달바 비타 토닝 캡슐 크림', cta:'더 알아보기', days:84},
+       b:{video:'assets/q7-b.mp4', img:'assets/q7-b.webp', head:'느낌이 아니라 데이터로 말하는', copy:'느낌이 아니라 데이터로 말하는 달바 비타 토닝 캡슐 크림 — 잡티 면적 17.21% 감소', cta:'더 알아보기', days:4},
+       correct:'a', note:"'안 가려진다면?'처럼 고민을 되묻는 질문형 헤드라인이 84일을 버텼습니다. '17.21% 감소'라는 구체적 수치와 비포·애프터 비교 이미지는 오히려 4일 만에 내려갔습니다."},
+      {cat:'F&B · META AD', brand:'라라스윗 Lalasweet', date:'2026.07.08', g:['#ffd9e4','#d63b6a'], ar:'9/16',
+       a:{img:'assets/q8-a.webp', head:'개당 1천원대로 적용된 상태입니다', copy:'정가 18,000원 더블베리 듬뿍바가 개당 1천원대로 적용된 상태입니다. 이번 물량까지만 개당 1천원대 판매 유지 후 즉시 정상가로 복구될 예정입니다.', cta:'구매하기', days:2},
+       b:{img:'assets/q8-b.webp', head:'1박스 0원으로 적용된 상태입니다', copy:'정가 18,000원 더블베리 듬뿍바가 1박스 0원으로 적용된 상태입니다. 이번 물량까지만 한박스 0원 판매 유지 후 즉시 정상가로 복구될 예정입니다.', cta:'구매하기', days:33},
+       correct:'b', note:"같은 소재, 같은 레이아웃에서 가격 표기 한 줄만 달랐습니다. '개당 1천원대'보다 '18,000원 → 0원'이라는 구체적 숫자 혜택이 33일을 살아남게 했습니다."},
+      {cat:'BEAUTY · META AD', brand:'마미케어 mommycare', date:'2026.02.06', g:['#ffe6ef','#c76a92'],
+       a:{img:'assets/q9-a.webp', head:'"얼굴 라인이 정말 예뻐져요"', copy:'"얼굴 라인이 정말 예뻐져요" 올인원 윤곽 디바이스 12만원 · 에스테틱 효과 50%', cta:'더 알아보기', days:70},
+       b:{img:'assets/q9-b.webp', head:'여배우들이 극찬한 그 디바이스', copy:"'PENTA PRIME' 여배우들이 극찬한 그 디바이스 · 얼굴형+피부관리 올인원", cta:'더 알아보기', days:42},
+       correct:'a', note:"'여배우들이 극찬한'이라는 감성적 소구보다, 실제 사용자 후기 톤의 카피와 '12만원'이라는 가격을 함께 보여준 소재가 더 오래 살아남았습니다."},
+      {cat:'BEAUTY · META AD', brand:'메디힐 Mediheal', date:'2026.04.14', g:['#e6f0ff','#3b6fd6'],
+       a:{img:'assets/q10-a.webp', head:'"혹시 오늘 많이 피곤해?"', copy:'"혹시 오늘 많이 피곤해?" 칙칙한 다크스팟 해결 · 콜라겐 캡슐 패치 비타민C 미백 잡티 · 올영 단독! 120매 대용량', cta:'구매하기', days:7},
+       b:{img:'assets/q10-b.webp', head:'퀭한 인상 환하게!', copy:'퀭한 인상 환하게! 비타민C 패치로 생기 펌핑 · 1+1 대용량 기획은 오직 올리브영에서만!', cta:'구매하기', days:16},
+       correct:'b', note:"'혹시 오늘 많이 피곤해?'라는 질문형 헤드라인보다, '퀭한 인상 환하게!'처럼 생기를 강조하고 '1+1' 혜택까지 붙인 소재가 더 오래 게재되었습니다."},
+      {cat:'F&B · META AD', brand:'클룹 CLOOP', date:'2026.07.14', g:['#ffe0dc','#c0342b'],
+       a:{img:'assets/q11-a.webp', head:'두 병이면 일 권장 식이섬유', copy:'"두 병이면 일 권장 식이섬유 채울 수 있어서 간편해요" 찐 사과맛에 당류는 ZERO! 한번에 채우는 애사비와 식이섬유 · 100원딜', cta:'구매하기', days:14},
+       b:{img:'assets/q11-b.webp', head:'샐러드 5팩급이더라고요?', copy:'"걍 사과맛인데 식이섬유가 샐러드 5팩급이더라고요?" 찐 사과맛에 당류 ZERO! 애사비 특유 쿰쿰함 ZERO! · 100원딜', cta:'구매하기', days:7},
+       correct:'a', note:"'샐러드 5팩급'이라는 비유와 타원형 텍스트 나열보다, '두 병이면 100원딜'처럼 구체적 숫자 혜택을 앞세운 소재가 더 오래 살아남았습니다."},
     ];
     const TYPES = [
       {min:6, name:'마케터 끝판왕', desc:'오래 가는 소재의 신호를 정확히 읽었네요! 당신을 마케터 끝판왕으로 임명합니다.'},
@@ -248,15 +269,44 @@
       {min:0, name:'예산 탕진 장인', desc:'화려한 한 방에 마음이 갑니다. 눈에 띄는 쪽이 아닌 근거로 소재를 분석해보세요!'},
     ];
 
+    // 브랜드별 위닝 소재 아카이브 링크 (결과 화면의 문제별 결과에서 사용)
+    const REF = 'https://reference.snipit.im/reference/meta_library/';
+    const WIN_REF = {
+      '노트폴리오 Notefolio':'9299437',
+      '쿠쿠':'6153087',
+      '퓌 fwee':'8762913',
+      '한끼통살':'7978286',
+      '토스플레이스':'6783625',
+      '달바 dAlba':'7840762',
+      '라라스윗 Lalasweet':'7066246',
+      '마미케어 mommycare':'6500953',
+      '메디힐 Mediheal':'7822345',
+      '클룹 CLOOP':'6554011',
+      // 크런틴 CRUNTIN: 위닝 소재 링크 미제공 → 아래 MORE_URL로 대체
+    };
+    POOL.forEach(q => { const id = WIN_REF[q.brand]; if(id) q.win = REF + id; });
+
+    // 매 판마다 POOL에서 ROUND개를 무작위로 뽑아 무작위 순서로 출제
+    const ROUND = 6;
+    function pickQuestions(){
+      const a = POOL.slice();
+      for(let i=a.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+      return a.slice(0, ROUND);
+    }
+    let questions = pickQuestions();
+
     let index=0, score=0, streak=0, best=0, log=[], answered=false;
     const $=id=>document.getElementById(id);
     const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     function show(id){ document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active')); $(id).classList.add('active'); window.scrollTo({top:0}); }
-    function startGame(){ index=0; score=0; streak=0; best=0; log=[]; renderQuestion(); show('game'); track('quiz_started'); }
+    function startGame(){ questions=pickQuestions(); index=0; score=0; streak=0; best=0; log=[]; renderQuestion(); show('game'); track('quiz_started',{brands:questions.map(q=>q.brand).join(', ')}); }
 
     function adCard(x,k){
       const ad=x[k];
-      const inner = ad.img ? `<img src="${esc(ad.img)}" alt="${esc(ad.head)}" loading="lazy">` : `<div style="display:grid;place-items:center;height:100%;padding:16px;font-weight:800;font-size:18px;word-break:keep-all">${esc(ad.head)}</div>`;
+      const inner = ad.video
+        ? `<video src="${esc(ad.video)}"${ad.img?` poster="${esc(ad.img)}"`:''} autoplay muted loop playsinline preload="metadata" aria-label="${esc(ad.head)}"></video>`
+        : ad.img ? `<img src="${esc(ad.img)}" alt="${esc(ad.head)}" loading="lazy">`
+        : `<div style="display:grid;place-items:center;height:100%;padding:16px;font-weight:800;font-size:18px;word-break:keep-all">${esc(ad.head)}</div>`;
       return `<button class="choice" data-key="${k}" onclick="choose('${k}')">
         <div class="visual">${inner}</div>
         <div class="label">${k.toUpperCase()}</div>
@@ -273,6 +323,7 @@
       $('question').textContent='더 오래 게재된 위닝광고를 선택하세요'; $('question').className='question';
       $('reveal').className='reveal'; $('next').className='next';
       $('nextBtn').textContent=index===questions.length-1?'결과 보기':'다음 문제';
+      $('choices').style.setProperty('--ar', x.ar || '1/1');
       $('choices').innerHTML=['a','b'].map(k=>adCard(x,k)).join('');
     }
 
@@ -308,7 +359,8 @@
       $('miss').innerHTML = missed.length ? `틀린 문제 <b>${esc(missed.join(', '))}</b> — 동료는 맞출 수 있을까요?` : '전부 맞추셨습니다. 이 결과 그대로 자랑하세요.';
       $('moreSub').textContent=`${questions.slice(0,3).map(q=>q.brand).join(', ')} 외 ${n-3}개 브랜드 · 게재기간·소재·카피까지`;
       $('moreLink').href=MORE_URL; $('moreLink').onclick=()=>track('more_ads_clicked',{score});
-      $('review').innerHTML = `<h3>문제별 결과</h3>` + questions.map((q,k)=>`<a href="${MORE_URL}" target="_blank" rel="noopener"><span style="background:${log[k]?'var(--green)':'var(--red)'}">${log[k]?'○':'×'}</span><div>${esc(q.brand)}<br><small>${esc(q.cat)} · 정답 ${q.correct.toUpperCase()} (${q[q.correct].days}일)</small></div><small>→</small></a>`).join('');
+      $('review').innerHTML = `<h3>문제별 결과 <em>— 브랜드를 누르면 위닝 소재를 볼 수 있어요</em></h3>` + questions.map((q,k)=>`<a href="${esc(q.win||MORE_URL)}" target="_blank" rel="noopener" data-brand="${esc(q.brand)}"><span style="background:${log[k]?'var(--green)':'var(--red)'}">${log[k]?'○':'×'}</span><div>${esc(q.brand)}<br><small>${esc(q.cat)} · 정답 ${q.correct.toUpperCase()} (${q[q.correct].days}일)</small></div><small>→</small></a>`).join('');
+      $('review').querySelectorAll('a').forEach(a=>a.onclick=()=>track('winning_ad_clicked',{brand:a.dataset.brand, score}));
       show('result');
     }
 
