@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#2b2b2b" />
+  <title>난 상위 몇% 마케터일까?</title>
+  <meta name="description" content="더 오래 살아남은 광고를 맞혀보세요." />
+  <!-- ▼ 배포 시 교체: 도메인 · OG 이미지(1200×630) -->
+  <meta property="og:title" content="난 상위 몇% 마케터일까?" />
+  <meta property="og:description" content="더 오래 살아남은 광고를 맞혀보세요." />
+  <meta property="og:image" content="https://example.com/assets/og.png" />
+  <meta property="og:url" content="https://example.com/" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="assets/favicon.png" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+  <style>
+    @font-face { font-family:'Pretendard Local'; src:url('assets/fonts/Pretendard-Regular.otf') format('opentype'); font-weight:400; font-display:swap; }
+    @font-face { font-family:'Pretendard Local'; src:url('assets/fonts/Pretendard-Medium.otf') format('opentype'); font-weight:500; font-display:swap; }
+  </style>
+  <style>
+    :root { --ink:#f2f2f2; --muted:#9a9a9a; --line:#3a3a3a; --bg:#2b2b2b; --card:#fff; --green:#00a96b; --red:#f0485c; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:Pretendard,'Pretendard Local',system-ui,sans-serif; letter-spacing:-.03em; -webkit-tap-highlight-color:transparent; }
+    button { font:inherit; cursor:pointer; }
+    button:focus-visible, a:focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
+
+    .app { min-height:100dvh; }
+    .screen { display:none; min-height:100dvh; flex-direction:column; }
+    .screen.active { display:flex; animation:up .28s ease both; }
+    @keyframes up { from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+    .wrap { width:100%; max-width:720px; margin:0 auto; padding:0 20px; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; padding:20px 0; }
+    .brand { display:flex; align-items:center; gap:7px; font-weight:800; font-size:14px; color:var(--ink); text-decoration:none; }
+    .logo { width:20px; height:20px; display:block; }
+    .eyebrow, .count { font-size:13px; color:var(--muted); font-weight:600; }
+    .primary { border:0; border-radius:99px; padding:16px 28px; color:#111; background:#fff; font-size:16px; font-weight:700; transition:.15s; }
+    .primary:hover { background:#e6e6e6; } .primary:active { transform:scale(.98); }
+    .primary.full { width:100%; }
+
+    /* ── 시작 ── */
+    #start .hero { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:24px 0 80px; }
+    h1 { margin:0 0 14px; font-size:34px; line-height:1.2; letter-spacing:-.05em; word-break:keep-all; }
+    .intro { color:var(--muted); line-height:1.55; font-size:15px; margin:0 0 28px; word-break:keep-all; max-width:38ch; }
+    .stat { margin:18px 0 0; color:#888; font-size:12px; word-break:keep-all; max-width:38ch; }
+
+    /* ── 게임 ── */
+    .dots { display:flex; gap:4px; margin:4px 0 20px; }
+    .dots i { flex:1; height:5px; border-radius:99px; background:#444; transition:.3s; }
+    .dots i.cur { background:#fff; } .dots i.ok { background:var(--green); } .dots i.no { background:var(--red); }
+    .race { display:grid; gap:8px; margin-top:14px; }
+    .race .row { display:grid; grid-template-columns:18px 1fr; gap:8px; align-items:center; font-size:12px; font-weight:800; color:var(--muted); }
+    .race .bar { height:36px; border-radius:8px; background:#3a3a3a; position:relative; overflow:hidden; }
+    .race .bar i { position:absolute; inset:0 auto 0 0; width:0; border-radius:8px; background:#666; transition:width 1.1s cubic-bezier(.2,.8,.2,1); }
+    .race .bar.top i { background:var(--green); }
+    .race .bar span { position:absolute; inset:0; display:flex; align-items:center; padding:0 12px; font-weight:800; font-size:13px; color:#fff; opacity:0; transition:opacity .4s .7s; }
+    .race.go .bar i { width:var(--w); } .race.go .bar span { opacity:1; }
+    .board { flex:1; display:flex; flex-direction:column; align-items:center; text-align:center; padding:8px 0 60px; }
+    .board .choices { order:1; } .board .brandname, .board .date, .board .vs { order:0; } .board .reveal { order:3; } .board .next { order:4; }
+    .question { order:2; margin:36px 0 0; padding:14px 20px; border-radius:10px; background:#161616; font-family:ui-monospace,"JetBrains Mono",Menlo,monospace; font-weight:600; font-size:13px; letter-spacing:0; line-height:1.6; color:#fff; word-break:keep-all; max-width:100%; transition:.2s; }
+    .question.note { font-family:inherit; font-size:14px; font-weight:500; letter-spacing:-.02em; text-align:left; width:100%; }
+    .brandname { margin:8px 0 6px; font-size:30px; font-weight:800; letter-spacing:-.05em; }
+    .date { margin:0; font-size:14px; color:var(--muted); }
+    .vs { display:inline-block; margin:22px 0 28px; padding:8px 16px; border-radius:6px; background:#fff; color:#111; font-size:17px; font-weight:700; min-width:120px; transition:.2s; }
+    .choices { display:grid; grid-template-columns:1fr 1fr; gap:24px; width:100%; }
+    .choice { padding:0; border:0; background:transparent; color:inherit; text-align:center; min-width:0; }
+    .choice:disabled { cursor:default; }
+    .visual { position:relative; aspect-ratio:1/1; border-radius:12px; overflow:hidden; background:var(--card); padding:10px; border:3px solid transparent; box-shadow:0 8px 24px rgba(0,0,0,.35); transition:.2s; }
+    .visual img { width:100%; height:100%; object-fit:contain; display:block; }
+    .choice:hover:not(:disabled) .visual { transform:translateY(-3px); box-shadow:0 14px 32px rgba(0,0,0,.45); }
+    .label { display:grid; width:44px; height:44px; margin:18px auto 0; place-items:center; border-radius:50%; background:#fff; color:#111; font-size:15px; font-weight:700; transition:.2s; }
+    .choice.wrong .visual { opacity:.4; }
+    .choice.wrong .label { background:#555; color:#999; }
+    .choice.correct .label { background:var(--green); color:#fff; }
+    .choice.correct .visual { border-color:var(--green); box-shadow:0 0 0 4px rgba(0,169,107,.25), 0 8px 24px rgba(0,0,0,.35); }
+    .choice.selected.wrong .label { background:var(--red); color:#fff; }
+    .reveal { display:none; width:100%; margin-top:32px; padding-top:24px; border-top:1px solid var(--line); text-align:left; }
+    .reveal.show { display:block; animation:up .2s ease both; }
+    .reveal strong { font-size:15px; display:flex; align-items:center; gap:8px; }
+    .reveal strong em { font-style:normal; font-size:11px; padding:3px 8px; border-radius:99px; background:var(--green); color:#fff; }
+    .reveal strong em.bad { background:var(--red); }
+    .reveal p { margin:10px 0 0; color:#fff; font-size:14px; line-height:1.6; word-break:keep-all; }
+    .next { display:none; width:100%; margin-top:24px; } .next.show { display:block; }
+
+    /* ── 결과 ── */
+    #result .body { flex:1; padding:16px 0 60px; text-align:center; }
+    .result-title { margin:24px 0 0; font-size:28px; letter-spacing:-.05em; word-break:keep-all; line-height:1.25; }
+    .result-text { margin:12px auto 28px; max-width:320px; color:var(--muted); line-height:1.5; font-size:14px; word-break:keep-all; }
+    .dist { display:flex; align-items:flex-end; justify-content:center; gap:5px; height:140px; margin:8px auto 20px; max-width:420px; }
+    .dist i { flex:1; max-width:16px; border-radius:99px; border:1.5px solid #fff; background:transparent; transition:height .8s cubic-bezier(.2,.8,.2,1); height:0; }
+    .dist.go i { height:var(--h); }
+    .dist i.me { background:#fff; }
+    .dist i.past { background:#666; border-color:#666; }
+    .rank { margin:0 0 28px; font-size:22px; font-weight:500; } .rank b { font-weight:800; }
+    .scorecard { padding:28px 20px; border-radius:12px; background:#fff; color:#111; }
+    .scorecard small { color:var(--muted); font-weight:600; font-size:12px; }
+    .score { margin:6px 0 4px; font-size:48px; font-weight:800; letter-spacing:-.06em; }
+    .scorecard p { margin:0; color:#666; font-size:13px; }
+    .scorecard .type { margin-top:16px; padding-top:16px; border-top:1px solid var(--line); }
+    .scorecard .type b { display:block; font-size:18px; letter-spacing:-.04em; }
+    .scorecard .type p { margin-top:4px; color:var(--muted); font-size:13px; line-height:1.5; word-break:keep-all; }
+    .miss { margin:16px 0 0; font-size:13px; color:#c8c8c8; line-height:1.5; word-break:keep-all; }
+    .review { display:grid; gap:6px; margin-top:32px; text-align:left; }
+    .review h3 { margin:0 0 8px; font-size:13px; color:var(--muted); font-weight:700; }
+    .review a { display:grid; grid-template-columns:24px 1fr auto; gap:10px; align-items:center; padding:12px 0; border-bottom:1px solid var(--line); color:inherit; text-decoration:none; font-size:13px; font-weight:600; }
+    .review a span { width:20px; height:20px; border-radius:50%; display:grid; place-items:center; color:#fff; font-size:10px; }
+    .review a small { color:var(--muted); font-weight:500; }
+    .share { margin-top:20px; }
+    .more { display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding:14px 18px; border-radius:99px; border:1px solid #555; color:var(--ink); text-decoration:none; font-weight:700; font-size:14px; text-align:left; }
+    .more small { display:block; margin-top:2px; font-weight:500; color:var(--muted); font-size:12px; }
+    .more i { font-style:normal; font-size:16px; }
+    .link { margin-top:14px; border:0; background:transparent; color:var(--muted); text-decoration:underline; font-size:13px; }
+    .footnote { margin:24px auto 0; color:#777; text-align:center; font-size:11px; line-height:1.5; }
+    .toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(16px); background:#fff; color:#111; padding:10px 16px; border-radius:99px; font-size:13px; font-weight:700; opacity:0; transition:.25s; pointer-events:none; z-index:9; }
+    .toast.on { opacity:1; transform:translateX(-50%); }
+
+    @media (max-width:599px){
+      .topbar { padding:14px 0 10px; }
+      .dots { margin:0 0 12px; }
+      .board { padding:0 0 96px; }
+      .brandname { margin:2px 0 2px; font-size:24px; }
+      .date { font-size:13px; }
+      .vs { margin:12px 0 14px; padding:6px 14px; font-size:15px; }
+      .choices { gap:14px; }
+      .visual { padding:6px; border-radius:10px; }
+      .label { width:34px; height:34px; margin-top:10px; font-size:13px; }
+      .question { margin-top:14px; padding:10px 14px; font-size:12px; }
+      .question.note { font-size:13px; line-height:1.5; }
+      .reveal { margin-top:14px; padding-top:12px; }
+      .reveal strong { font-size:14px; }
+      .race { gap:6px; margin-top:10px; }
+      .race .bar { height:28px; border-radius:6px; } .race .bar span { font-size:12px; }
+      .next.show { position:fixed; left:0; right:0; bottom:0; margin:0; padding:12px 20px calc(12px + env(safe-area-inset-bottom)); background:linear-gradient(to top, var(--bg) 70%, transparent); z-index:5; }
+      .next .primary { padding:14px 24px; font-size:15px; }
+    }
+    @media (min-width:600px){ h1 { font-size:44px; } .brandname { font-size:36px; } .choices { gap:32px; } }
+    @media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} .dist i{height:var(--h)!important} .race .bar i{width:var(--w)!important} .race .bar span{opacity:1!important} }
+  </style>
+</head>
+<body>
+  <main class="app">
+
+    <section class="screen active" id="start">
+      <div class="wrap">
+        <div class="topbar"><a class="brand" href="#"><img class="logo" src="assets/logo.png" alt="">SNIPIT</a><span class="eyebrow" id="eyebrow">6문제 · 약 2분</span></div>
+        <div class="hero">
+          <h1>더 오래 살아남은<br>광고를 맞혀보세요!</h1>
+          <p class="intro">다 맞추면 진짜 마케팅 고수.</p>
+          <button class="primary" onclick="startGame()">테스트 시작하기</button>
+          <p class="stat">게재 기간은 광고 성과의 확정값이 아니라, 더 살펴볼 가치가 있는 운영 신호입니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="game">
+      <div class="wrap">
+        <div class="topbar"><a class="brand" href="#" onclick="event.preventDefault();show('start')"><img class="logo" src="assets/logo.png" alt="">SNIPIT</a><span class="count" id="count">1 / 6</span></div>
+        <div class="dots" id="dots"></div>
+        <div class="board">
+          <p class="question" id="question">더 오래 게재된 위닝광고를 선택하세요</p>
+          <h2 class="brandname" id="brandname"></h2>
+          <p class="date" id="date"></p>
+          <div class="vs" id="vs">A VS B</div>
+          <div class="choices" id="choices"></div>
+          <div class="reveal" id="reveal"></div>
+          <div class="next" id="next"><button class="primary full" onclick="nextQuestion()" id="nextBtn">다음 문제</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="result">
+      <div class="wrap">
+        <div class="topbar"><a class="brand" href="#" onclick="event.preventDefault();show('start')"><img class="logo" src="assets/logo.png" alt="">SNIPIT</a></div>
+        <div class="body">
+          <h2 class="result-title">당신의 광고 감각은<br><span id="scoreText">0 / 6</span></h2>
+          <p class="result-text" id="resultText"></p>
+          <div class="dist" id="dist" aria-hidden="true"></div>
+          <p class="rank" id="rankText"></p>
+          <div class="scorecard">
+            <small>광고 생존 감별 테스트</small>
+            <div class="score" id="scoreBig">0점</div>
+            <p id="pct"></p>
+            <div class="type"><b id="typeName"></b><p id="typeDesc"></p></div>
+          </div>
+          <p class="miss" id="miss"></p>
+          <button class="primary full share" onclick="shareGame()">공유하기</button>
+          <a class="more" href="#" id="moreLink" target="_blank" rel="noopener"><span>이 브랜드들의 광고 전부 보기<small id="moreSub"></small></span><i>→</i></a>
+          <button class="link" onclick="startGame()">처음부터 다시 하기</button>
+          <div class="review" id="review"></div>
+          <p class="footnote">게재 기간은 스니핏 아카이브에서 확인한 실제 운영 데이터입니다.<br>광고 이미지의 저작권은 각 브랜드에 있습니다.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div class="toast" id="toast">링크를 복사했어요</div>
+
+  <script>
+    // ▼ 배포 시 교체: 결과 화면 "광고 전부 보기" 링크
+    const MORE_URL = 'https://reference.snipit.im/board/77833/key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJib2FyZF9pZCI6MTQwNTYsInRva2VuX3R5cGUiOiJib2FyZF9zaGFyZSIsImluY2x1ZGVfbWVtb19zdW1tYXJ5IjpmYWxzZX0.uJ7zx6K1JBqf6WUuAIOA-yFv6OWLQ4KmqPl1Ei7L00c';
+
+    // 각 광고에 img 경로를 넣으면 썸네일 표시, 없으면 그라데이션 폴백.
+    // 예) a:{img:'assets/q1-a.jpg', head:'...', ...}
+    const questions = [
+      {cat:'EDU · META AD', brand:'노트폴리오 Notefolio', date:'2026.07.31', g:['#e8ddff','#6b4be0'],
+       a:{img:'assets/q1-a.jpg', head:'AI로 완성하는 브랜딩 실무 워크숍', copy:'신세계, 아모레와 협업한 디자이너의 AI로 완성하는 브랜딩 실무 워크숍 (OFFLINE · 8WEEK)', cta:'더 알아보기', days:11},
+       b:{img:'assets/q1-b.jpg', head:'8주 완성! AI로 완성하는 브랜딩 + 패키지 워크숍', copy:'AI로 브랜드 컨셉부터 로고, 패키지, 룩북까지! 8주 완성! AI로 완성하는 브랜딩 + 패키지 워크숍', cta:'더 알아보기', days:5},
+       correct:'a', note:"신세계, 아모레와 같은 협업 브랜드 언급과 제품 이미지 분할 배치가 위닝 광고를 갈랐습니다."},
+      {cat:'F&B · META AD', brand:'크런틴 CRUNTIN', date:'2025.11.23', g:['#ffe9a8','#e2a300'],
+       a:{img:'assets/q2-a.jpg', head:'엄마들 사이 소문난 아이들 건강간식', copy:'아… 진작 먹일껄…. 엄마들 사이 소문난 아이들 건강간식. 단백질 20g. 마감임박!! 무료체험팩은 이 링크에서만!', cta:'더 알아보기', days:29},
+       b:{img:'assets/q2-b.jpg', head:'아이들이 찾아서 먹는 성장기 건강간식', copy:'아… 진작 먹일껄…. 아이들이 찾아서 먹는 성장기 건강간식. 단백질 20g. 마감임박!! 무료체험팩은 이 링크에서만!', cta:'더 알아보기', days:155},
+       correct:'b', note:"사회적 증거가 아닌, 건강간식을 아이에게 먹이고 싶다는 니즈를 건드린 소재가 155일 게재되었습니다."},
+      {cat:'HOME · META AD', brand:'쿠쿠', date:'2026.02.03', g:['#f6e3cf','#b8743c'],
+       a:{img:'assets/q3-a.jpg', head:'앱 버튼 한 번으로 요리 시작!', copy:'언제 어디서든 앱 버튼 한 번으로 요리 시작! 쿠쿠 IOT 사일런스 밥솥', cta:'더 알아보기', days:30},
+       b:{img:'assets/q3-b.jpg', head:'퇴근길 터치 한 번으로 갓 지은 맛있는 밥 완성!', copy:'퇴근길 터치 한 번으로 갓 지은 맛있는 밥 완성! IOT 취사예약으로 기다림 없는 저녁', cta:'더 알아보기', days:44},
+       correct:'b', note:"'기다림 없는 저녁'과 같은 구체적 상황 묘사가 더욱 직관적인 광고를 만들었습니다. 한편 '쿠쿠 IOT 사일런스 밥솥'과 같은 제품명 문구는 소구되지 않았음을 확인할 수 있습니다."},
+      {cat:'BEAUTY · META AD', brand:'퓌 fwee', date:'2026.07.31', g:['#e6f4e8','#2e9e5b'],
+        a:{img:'assets/q4-a.jpg', head:'3세대 대표 코덕 나경이 쓰는 스파 베이스', copy:'3세대 대표 코덕 나경이 쓰는 스파 베이스 드디어 듀오 기획 출시 ㄷㄷ', cta:'더 알아보기', days:73},
+       b:{img:'assets/q4-b.jpg', head:'한 번만 써본 사람은 없다는 나경 베이스', copy:'한 번도 안써본 사람은 있어도 한 번만 써본 사람은 없다는 나경 베이스', cta:'더 알아보기', days:22},
+       correct:'a', note:"인플루언서 실명과 '듀오 기획 출시'라는 구체적 뉴스를 함께 실은 소재가 더 오래 살아남았습니다."},
+      {cat:'F&B · META AD', brand:'한끼통살', date:'2026.05.08', g:['#ffe3e0','#d8262b'],
+       a:{img:'assets/q5-a.jpg', head:'안 죄송합니다', copy:'안 죄송합니다. 쫄깃촉촉 난리난 이거, 100원 특가 풉니다. 이번주까지만 10+10+10 골라담기 특가 3,500원→1천원대', cta:'구매하기', days:33},
+       b:{img:'assets/q5-b.jpg', head:'고객님 죄송합니다', copy:'고객님 죄송합니다. 43,000원 즉시 할인 없어져요… 너무 죄송해서 30팩 최최저가로 드립니다. [비밀링크] 오늘 밤 12시 즉시 종료합니다', cta:'구매하기', days:12},
+       correct:'a', note:"100원 특가와 같은 파격적 가격 혜택을 정면에 내세운 소재가 더 오래 게재되었습니다."},
+      {cat:'B2B · META AD', brand:'토스플레이스', date:'2026.01.23', g:['#e3ecff','#2f5bd6'],
+        a:{img:'assets/q6-a.jpg', head:'OO OO 도입 후 신당에서 리뷰 수 1위 달성', copy:'OO OO 도입 후 신당에서 리뷰 수 1위 달성 (신당 카페 사장님) 리뷰 써 주시고', cta:'더 알아보기', days:27},
+       b:{img:'assets/q6-b.jpg', head:'돈 안 쓰고 리뷰 수 30배 불린 비결', copy:'돈 안 쓰고 리뷰 수 30배 불린 비결 (신당 카페 사장님) 리뷰 써 주시고', cta:'더 알아보기', days:6},
+       correct:'a', note:"'리뷰 수 1위 달성'처럼 구체적 성과를 내세운 문구가 '비결'형 호기심 유발 문구보다 오래 살아남았습니다. 같은 영상, 같은 상하 분할 레이아웃에서 헤드카피 한 줄이 결과를 갈랐습니다."},
+    ];
+    const TYPES = [
+      {min:6, name:'광고판 예언자', desc:'감이 아니라 데이터로 보는 눈. 남의 광고도 언제 꺼질지 맞추겠는데요.'},
+      {min:5, name:'소재 감별사', desc:'카피의 결이 읽히는 사람. 자기 소재 A/B 테스트에서 이길 확률이 높습니다.'},
+      {min:3, name:'반반 도박러', desc:'맞는 것도 틀리는 것도 이유가 있어요. 오래 가는 소재의 공통점을 한 번만 정리하면 급상승.'},
+      {min:0, name:'자극 편애러', desc:'눈에 띄는 쪽을 고르는 본능이 강합니다. 문제는 예산은 자극이 아니라 지속성에 붙는다는 것.'},
+    ];
+
+    let index=0, score=0, streak=0, best=0, log=[], answered=false;
+    const $=id=>document.getElementById(id);
+    const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    function show(id){ document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active')); $(id).classList.add('active'); window.scrollTo({top:0}); }
+    function startGame(){ index=0; score=0; streak=0; best=0; log=[]; renderQuestion(); show('game'); }
+
+    function adCard(x,k){
+      const ad=x[k];
+      const inner = ad.img ? `<img src="${esc(ad.img)}" alt="${esc(ad.head)}" loading="lazy">` : `<div style="display:grid;place-items:center;height:100%;padding:16px;font-weight:800;font-size:18px;word-break:keep-all">${esc(ad.head)}</div>`;
+      return `<button class="choice" data-key="${k}" onclick="choose('${k}')">
+        <div class="visual">${inner}</div>
+        <div class="label">${k.toUpperCase()}</div>
+      </button>`;
+    }
+
+    function renderQuestion(){
+      answered=false; const x=questions[index];
+      $('count').textContent=`${index+1} / ${questions.length}`;
+      $('dots').innerHTML=questions.map((_,k)=>`<i class="${k<index?(log[k]?'ok':'no'):k===index?'cur':''}"></i>`).join('');
+      $('brandname').textContent=x.brand.split(' ')[0];
+      $('date').textContent=`게재일자: ${x.date}.`;
+      $('vs').textContent='A VS B';
+      $('question').textContent='더 오래 게재된 위닝광고를 선택하세요'; $('question').className='question';
+      $('reveal').className='reveal'; $('next').className='next';
+      $('nextBtn').textContent=index===questions.length-1?'결과 보기':'다음 문제';
+      $('choices').innerHTML=['a','b'].map(k=>adCard(x,k)).join('');
+    }
+
+    function choose(key){
+      if(answered) return; answered=true;
+      const x=questions[index], correct=key===x.correct; log[index]=correct;
+      if(correct){score++; streak++; best=Math.max(best,streak);} else streak=0;
+      document.querySelectorAll('#choices .choice').forEach(el=>{const k=el.dataset.key; el.disabled=true; el.classList.add(k===x.correct?'correct':'wrong'); if(k===key)el.classList.add('selected');});
+      $('vs').textContent=`${x.a.days}일 VS ${x.b.days}일`;
+      $('reveal').innerHTML=`
+        <strong><em class="${correct?'':'bad'}">${correct?'정답':'오답'}</em>${correct?'정답이에요!':'정답은 '+x.correct.toUpperCase()+'예요.'}</strong>
+        <div class="race" id="race">${['a','b'].map(k=>`<div class="row"><span>${k.toUpperCase()}</span><div class="bar ${k===x.correct?'top':''}" style="--w:${Math.max(18,x[k].days/Math.max(x.a.days,x.b.days)*100)}%"><i></i><span>${x[k].days}일 게재</span></div></div>`).join('')}</div>`;
+      $('question').textContent=x.note; $('question').className='question note';
+      $('reveal').className='reveal show'; $('next').className='next show';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>$('race').classList.add('go')));
+    }
+
+    function nextQuestion(){ if(index<questions.length-1){index++; renderQuestion(); window.scrollTo({top:0,behavior:'smooth'});} else showResult(); }
+
+    function showResult(){
+      const n=questions.length, pct=Math.round(score/n*100);
+      const rank=[2,10,30,55,78,92,99][score]; // MVP: 임시 분포. 실서비스는 누적 응답 기반
+      $('scoreText').textContent=`${score} / ${n}`; $('scoreBig').textContent=`${pct}점`;
+      const top=100-rank; $('pct').textContent=`최다 연속 정답 ${best}`;
+      $('rankText').innerHTML=`당신은 <b>상위 ${top}%</b>입니다`;
+      const N=21, me=Math.round((100-top)/100*(N-1));
+      $('dist').innerHTML=Array.from({length:N},(_,i)=>{const z=(i-(N-1)/2)/((N-1)/4.2); const h=Math.round(14+86*Math.exp(-z*z/2)); return `<i class="${i<me?'past':i===me?'me':''}" style="--h:${h}%"></i>`;}).join('');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>$('dist').classList.add('go')));
+      const t=TYPES.find(t=>score>=t.min); $('typeName').textContent=t.name; $('typeDesc').textContent=t.desc;
+      $('resultText').innerHTML = score===n ? '정확해요. 오래 살아남는 광고의 신호를 잘 읽고 있어요.<br>동료 마케터도 맞힐 수 있을까요?' : score>=n/2 ? '오래 살아남는 광고를 꽤 잘 짚어냈어요.<br>동료 마케터에게도 물어보세요.' : '첫인상만으로는 어렵죠.<br>그래서 실제 운영 데이터를 함께 봐야 합니다.';
+      const missed=questions.filter((_,k)=>!log[k]).map(q=>q.brand);
+      $('miss').innerHTML = missed.length ? `틀린 문제 <b>${esc(missed.join(', '))}</b> — 동료는 맞출 수 있을까요?` : '전부 맞추셨습니다. 이 결과 그대로 자랑하세요.';
+      $('moreSub').textContent=`${questions.slice(0,3).map(q=>q.brand).join(', ')} 외 ${n-3}개 브랜드 · 게재기간·소재·카피까지`;
+      $('moreLink').href=MORE_URL;
+      $('review').innerHTML = `<h3>문제별 결과</h3>` + questions.map((q,k)=>`<a href="${MORE_URL}" target="_blank" rel="noopener"><span style="background:${log[k]?'var(--green)':'var(--red)'}">${log[k]?'○':'×'}</span><div>${esc(q.brand)}<br><small>${esc(q.cat)} · 정답 ${q.correct.toUpperCase()} (${q[q.correct].days}일)</small></div><small>→</small></a>`).join('');
+      show('result');
+    }
+
+    async function shareGame(){
+      const t=TYPES.find(t=>score>=t.min);
+      const text=`광고 생존 감별 테스트 ${score}/${questions.length}, 나는 "${t.name}" 마케터. 실제로 더 오래 게재된 광고, 당신도 맞혀보세요.`;
+      const payload=`${text}\n${location.href}`;
+      let ok=false;
+      try{ await navigator.clipboard.writeText(payload); ok=true; }catch(e){}
+      if(!ok){ try{ const ta=document.createElement('textarea'); ta.value=payload; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); ok=document.execCommand('copy'); ta.remove(); }catch(e){} }
+      const tt=$('toast'); tt.textContent=ok?'링크를 복사했어요':'복사에 실패했어요. 주소창의 링크를 직접 복사해주세요.'; tt.classList.add('on'); setTimeout(()=>tt.classList.remove('on'),1800);
+    }
+
+  </script>
+</body>
+</html>
