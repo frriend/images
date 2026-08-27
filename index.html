@@ -16,6 +16,13 @@
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="assets/favicon.png" />
+  <!-- Amplitude (project 856967) -->
+  <script src="https://cdn.amplitude.com/script/a85d9ec8b66a49146fd7903f447ae8a6.js"></script>
+  <script>
+    window.AMP_KEY='a85d9ec8b66a49146fd7903f447ae8a6';
+    window.amplitude && amplitude.init(window.AMP_KEY, {autocapture:{elementInteractions:false}});
+    window.track=(n,p)=>{ try{ window.amplitude && amplitude.track(n,p||{}); }catch(e){} };
+  </script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
   <style>
     @font-face { font-family:'Pretendard Local'; src:url('assets/fonts/Pretendard-Regular.otf') format('opentype'); font-weight:400; font-display:swap; }
@@ -240,7 +247,7 @@
     const $=id=>document.getElementById(id);
     const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     function show(id){ document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active')); $(id).classList.add('active'); window.scrollTo({top:0}); }
-    function startGame(){ index=0; score=0; streak=0; best=0; log=[]; renderQuestion(); show('game'); }
+    function startGame(){ index=0; score=0; streak=0; best=0; log=[]; renderQuestion(); show('game'); track('quiz_started'); }
 
     function adCard(x,k){
       const ad=x[k];
@@ -268,6 +275,7 @@
       if(answered) return; answered=true;
       const x=questions[index], correct=key===x.correct; log[index]=correct;
       if(correct){score++; streak++; best=Math.max(best,streak);} else streak=0;
+      track('question_answered',{question_index:index+1, brand:x.brand, choice:key.toUpperCase(), correct, correct_answer:x.correct.toUpperCase()});
       document.querySelectorAll('#choices .choice').forEach(el=>{const k=el.dataset.key; el.disabled=true; el.classList.add(k===x.correct?'correct':'wrong'); if(k===key)el.classList.add('selected'); el.querySelector('.label').textContent=`${k.toUpperCase()} · ${x[k].days}일`;});
       $('reveal').innerHTML=`
         <strong><em class="${correct?'':'bad'}">${correct?'정답':'오답'}</em>${correct?'정답이에요!':'정답은 '+x.correct.toUpperCase()+'예요.'}</strong>
@@ -289,17 +297,18 @@
       $('dist').innerHTML=Array.from({length:N},(_,i)=>{const z=(i-(N-1)/2)/((N-1)/4.2); const h=Math.round(14+86*Math.exp(-z*z/2)); return `<i class="${i<me?'past':i===me?'me':''}" style="--h:${h}%"></i>`;}).join('');
       requestAnimationFrame(()=>requestAnimationFrame(()=>$('dist').classList.add('go')));
       const t=TYPES.find(t=>score>=t.min); $('typeName').textContent=t.name; $('typeDesc').textContent=t.desc;
+      track('quiz_completed',{score, total:n, top_percent:top, result_type:t.name, best_streak:best});
       $('resultText').innerHTML = score===n ? '정확해요. 오래 살아남는 광고의 신호를 잘 읽고 있어요.<br>동료 마케터도 맞힐 수 있을까요?' : score>=n/2 ? '오래 살아남는 광고를 꽤 잘 짚어냈어요.<br>동료 마케터에게도 물어보세요.' : '첫인상만으로는 어렵죠.<br>그래서 실제 운영 데이터를 함께 봐야 합니다.';
       const missed=questions.filter((_,k)=>!log[k]).map(q=>q.brand);
       $('miss').innerHTML = missed.length ? `틀린 문제 <b>${esc(missed.join(', '))}</b> — 동료는 맞출 수 있을까요?` : '전부 맞추셨습니다. 이 결과 그대로 자랑하세요.';
       $('moreSub').textContent=`${questions.slice(0,3).map(q=>q.brand).join(', ')} 외 ${n-3}개 브랜드 · 게재기간·소재·카피까지`;
-      $('moreLink').href=MORE_URL;
+      $('moreLink').href=MORE_URL; $('moreLink').onclick=()=>track('more_ads_clicked',{score});
       $('review').innerHTML = `<h3>문제별 결과</h3>` + questions.map((q,k)=>`<a href="${MORE_URL}" target="_blank" rel="noopener"><span style="background:${log[k]?'var(--green)':'var(--red)'}">${log[k]?'○':'×'}</span><div>${esc(q.brand)}<br><small>${esc(q.cat)} · 정답 ${q.correct.toUpperCase()} (${q[q.correct].days}일)</small></div><small>→</small></a>`).join('');
       show('result');
     }
 
     async function shareGame(){
-      const t=TYPES.find(t=>score>=t.min);
+      const t=TYPES.find(t=>score>=t.min); track('share_clicked',{score, result_type:t.name});
       const text=`광고 생존 감별 테스트 ${score}/${questions.length}, 나는 "${t.name}" 마케터. 실제로 더 오래 게재된 광고, 당신도 맞혀보세요.`;
       const payload=`${text}\n${location.href}`;
       let ok=false;
