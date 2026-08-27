@@ -125,6 +125,24 @@
     .more i { font-style:normal; font-size:16px; }
     .link { margin-top:14px; border:0; background:transparent; color:var(--muted); text-decoration:underline; font-size:13px; }
     .footnote { margin:24px auto 0; color:#777; text-align:center; font-size:11px; line-height:1.5; }
+
+    /* ── 피드백 ── */
+    .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+    .feedback { margin:32px 0 0; padding:22px 20px 20px; border-radius:12px; border:1px solid var(--line); background:#242424; text-align:left; }
+    .feedback h3 { margin:0 0 16px; font-size:17px; font-weight:800; letter-spacing:-.04em; text-align:center; word-break:keep-all; }
+    .rate { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+    .rate button { padding:12px 0; border:1px solid #4a4a4a; border-radius:10px; background:transparent; color:var(--ink); font-size:15px; font-weight:700; transition:.15s; }
+    .rate button:hover { border-color:#7a7a7a; background:#2e2e2e; }
+    .rate button[aria-checked="true"] { background:#fff; border-color:#fff; color:#111; }
+    .rate-legend { display:flex; justify-content:space-between; margin:7px 2px 0; color:#8a8a8a; font-size:11px; }
+    .feedback textarea { width:100%; margin-top:16px; padding:12px 14px; border:1px solid #4a4a4a; border-radius:10px; background:#1b1b1b; color:var(--ink); font:inherit; font-size:14px; line-height:1.55; letter-spacing:-.02em; resize:vertical; }
+    .feedback textarea::placeholder { color:#7a7a7a; }
+    .feedback textarea:focus { outline:none; border-color:#8a8a8a; }
+    .feedback .primary { margin-top:12px; padding:14px 24px; font-size:15px; }
+    .feedback .primary:disabled { background:#4a4a4a; color:#8a8a8a; cursor:default; }
+    .fb-hint { margin:10px 0 0; color:#8a8a8a; text-align:center; font-size:12px; line-height:1.5; word-break:keep-all; }
+    .feedback.done { text-align:center; }
+    .feedback.done .rate, .feedback.done .rate-legend, .feedback.done textarea, .feedback.done .primary { display:none; }
     .toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(16px); background:#fff; color:#111; padding:10px 16px; border-radius:99px; font-size:13px; font-weight:700; opacity:0; transition:.25s; pointer-events:none; z-index:9; }
     .toast.on { opacity:1; transform:translateX(-50%); }
 
@@ -204,6 +222,22 @@
           <button class="link" onclick="startGame()">처음부터 다시 하기</button>
           <div class="review" id="review"></div>
           <p class="footnote">게재 기간은 스니핏 아카이브에서 확인한 실제 운영 데이터입니다.<br>광고 이미지의 저작권은 각 브랜드에 있습니다.</p>
+
+          <section class="feedback" id="feedback">
+            <h3>스니핏 퀴즈는 어떠셨나요?</h3>
+            <div class="rate" id="rate" role="radiogroup" aria-label="만족도">
+              <button type="button" data-v="1" aria-label="1점">1</button>
+              <button type="button" data-v="2" aria-label="2점">2</button>
+              <button type="button" data-v="3" aria-label="3점">3</button>
+              <button type="button" data-v="4" aria-label="4점">4</button>
+              <button type="button" data-v="5" aria-label="5점">5</button>
+            </div>
+            <div class="rate-legend"><span>아쉬워요</span><span>최고예요</span></div>
+            <label class="sr" for="fbText">자유 의견</label>
+            <textarea id="fbText" rows="3" maxlength="1000" placeholder="어떤 점이 좋았고 아쉬웠는지, 더 보고 싶은 브랜드나 주제가 있다면 자유롭게 적어주세요."></textarea>
+            <button class="primary full" id="fbSend" onclick="sendFeedback()">피드백 보내기</button>
+            <p class="fb-hint" id="fbHint">한 줄이라도 남겨주시면 다음 퀴즈를 만드는 데 큰 도움이 됩니다.</p>
+          </section>
         </div>
       </div>
     </section>
@@ -299,7 +333,7 @@
     const $=id=>document.getElementById(id);
     const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     function show(id){ document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active')); $(id).classList.add('active'); window.scrollTo({top:0}); }
-    function startGame(){ questions=pickQuestions(); index=0; score=0; streak=0; best=0; log=[]; renderQuestion(); show('game'); track('quiz_started',{brands:questions.map(q=>q.brand).join(', ')}); }
+    function startGame(){ questions=pickQuestions(); index=0; score=0; streak=0; best=0; log=[]; resetFeedback(); renderQuestion(); show('game'); track('quiz_started',{brands:questions.map(q=>q.brand).join(', ')}); }
 
     function adCard(x,k){
       const ad=x[k];
@@ -362,6 +396,35 @@
       $('review').innerHTML = `<h3>문제별 결과 <em>— 브랜드를 누르면 위닝 소재를 볼 수 있어요</em></h3>` + questions.map((q,k)=>`<a href="${esc(q.win||MORE_URL)}" target="_blank" rel="noopener" data-brand="${esc(q.brand)}"><span style="background:${log[k]?'var(--green)':'var(--red)'}">${log[k]?'○':'×'}</span><div>${esc(q.brand)}<br><small>${esc(q.cat)} · 정답 ${q.correct.toUpperCase()} (${q[q.correct].days}일)</small></div><small>→</small></a>`).join('');
       $('review').querySelectorAll('a').forEach(a=>a.onclick=()=>track('winning_ad_clicked',{brand:a.dataset.brand, score}));
       show('result');
+    }
+
+    // ── 피드백 (정량 1~5 + 자유 서술) ──
+    const FB_ASK='스니핏 퀴즈는 어떠셨나요?', FB_HINT='한 줄이라도 남겨주시면 다음 퀴즈를 만드는 데 큰 도움이 됩니다.';
+    let fbRate=0;
+    $('rate').querySelectorAll('button').forEach(b=>{
+      b.setAttribute('role','radio'); b.setAttribute('aria-checked','false');
+      b.onclick=()=>{ fbRate=+b.dataset.v; $('rate').querySelectorAll('button').forEach(x=>x.setAttribute('aria-checked', String(x===b))); };
+    });
+
+    function resetFeedback(){
+      fbRate=0;
+      $('feedback').classList.remove('done');
+      $('feedback').querySelector('h3').textContent=FB_ASK;
+      $('fbHint').textContent=FB_HINT;
+      $('fbText').value='';
+      $('fbSend').disabled=false;
+      $('rate').querySelectorAll('button').forEach(x=>x.setAttribute('aria-checked','false'));
+    }
+
+    function sendFeedback(){
+      const text=$('fbText').value.trim();
+      if(!fbRate && !text){ $('fbHint').textContent='점수를 고르거나, 한 줄만 남겨주세요.'; return; }
+      const t=TYPES.find(t=>score>=t.min);
+      track('feedback_submitted',{rating:fbRate||null, text, has_text:!!text, text_length:text.length, score, total:questions.length, result_type:t.name});
+      $('fbSend').disabled=true;
+      $('feedback').classList.add('done');
+      $('feedback').querySelector('h3').textContent='소중한 의견 감사합니다!';
+      $('fbHint').textContent='남겨주신 의견은 다음 퀴즈에 그대로 반영하겠습니다.';
     }
 
     async function shareGame(){
