@@ -176,7 +176,7 @@
 
     <section class="screen active" id="start">
       <div class="wrap">
-        <div class="topbar"><a class="brand" href="#"><img class="logo" src="assets/logo.png" alt="">SNIPIT</a><span class="eyebrow" id="eyebrow">6문제 · 약 2분</span></div>
+        <div class="topbar"><a class="brand" href="#"><img class="logo" src="assets/logo.png" alt="">SNIPIT</a><span class="eyebrow" id="eyebrow">10문제 · 약 3분</span></div>
         <div class="hero">
           <h1>더 오래 살아남은<br>광고를 맞혀보세요!</h1>
           <p class="intro">다 맞추면 진짜 마케팅 고수.</p>
@@ -188,7 +188,7 @@
 
     <section class="screen" id="game">
       <div class="wrap">
-        <div class="topbar"><a class="brand" href="#" onclick="event.preventDefault();show('start')"><img class="logo" src="assets/logo.png" alt="">SNIPIT</a><span class="count" id="count">1 / 6</span></div>
+        <div class="topbar"><a class="brand" href="#" onclick="event.preventDefault();show('start')"><img class="logo" src="assets/logo.png" alt="">SNIPIT</a><span class="count" id="count">1 / 10</span></div>
         <div class="dots" id="dots"></div>
         <div class="board">
           <p class="question" id="question">더 오래 게재된 위닝광고를 선택하세요</p>
@@ -206,7 +206,7 @@
       <div class="wrap">
         <div class="topbar"><a class="brand" href="#" onclick="event.preventDefault();show('start')"><img class="logo" src="assets/logo.png" alt="">SNIPIT</a></div>
         <div class="body">
-          <h2 class="result-title">당신의 광고 감각은<br><span id="scoreText">0 / 6</span></h2>
+          <h2 class="result-title">당신의 광고 감각은<br><span id="scoreText">0 / 10</span></h2>
           <p class="result-text" id="resultText"></p>
           <div class="dist" id="dist" aria-hidden="true"></div>
           <p class="rank" id="rankText"></p>
@@ -296,12 +296,14 @@
        b:{img:'assets/q11-b.webp', head:'샐러드 5팩급이더라고요?', copy:'"걍 사과맛인데 식이섬유가 샐러드 5팩급이더라고요?" 찐 사과맛에 당류 ZERO! 애사비 특유 쿰쿰함 ZERO! · 100원딜', cta:'구매하기', days:7},
        correct:'a', note:"샐러드 5팩급 비유보다 두 병이면 식이섬유 채울 수 있다는 간편함을 강조한 점이 위닝 소재로 만들었습니다."},
     ];
+    // 문항 수가 바뀌어도 그대로 쓰이도록 정답률(0~1) 기준
     const TYPES = [
-      {min:6, name:'마케터 끝판왕', desc:'오래 가는 소재의 신호를 정확히 읽었네요! 당신을 마케터 끝판왕으로 임명합니다.'},
-      {min:5, name:'소재 감별사', desc:'오우, 꽤나 정확한데요? 소재 제작할 때 한마디 거들어도 되겠어요.'},
-      {min:3, name:'반반 도박러', desc:'낭만 있게 직관과 근거를 반반씩 섞으시는군요. 오래 가는 소재의 공통점을 한 번만 정리하면 보는 눈이 빠르게 선명해질거에요.'},
-      {min:0, name:'예산 탕진 장인', desc:'화려한 한 방에 마음이 갑니다. 눈에 띄는 쪽이 아닌 근거로 소재를 분석해보세요!'},
+      {minPct:1,  name:'마케터 끝판왕', desc:'오래 가는 소재의 신호를 정확히 읽었네요! 당신을 마케터 끝판왕으로 임명합니다.'},   // 10 / 10
+      {minPct:.8, name:'소재 감별사', desc:'오우, 꽤나 정확한데요? 소재 제작할 때 한마디 거들어도 되겠어요.'},                 // 8~9
+      {minPct:.4, name:'반반 도박러', desc:'낭만 있게 직관과 근거를 반반씩 섞으시는군요. 오래 가는 소재의 공통점을 한 번만 정리하면 보는 눈이 빠르게 선명해질거에요.'}, // 4~7
+      {minPct:0,  name:'예산 탕진 장인', desc:'화려한 한 방에 마음이 갑니다. 눈에 띄는 쪽이 아닌 근거로 소재를 분석해보세요!'},   // 0~3
     ];
+    const resultType = () => TYPES.find(t => score/questions.length >= t.minPct - 1e-9);
 
     // 브랜드별 위닝 소재 아카이브 링크 (결과 화면의 문제별 결과에서 사용)
     const REF = 'https://reference.snipit.im/reference/meta_library/';
@@ -321,13 +323,21 @@
     POOL.forEach(q => { const id = WIN_REF[q.brand]; if(id) q.win = REF + id; });
 
     // 매 판마다 POOL에서 ROUND개를 무작위로 뽑아 무작위 순서로 출제
-    const ROUND = 6;
+    const ROUND = 10;
     function pickQuestions(){
       const a = POOL.slice();
       for(let i=a.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
       return a.slice(0, ROUND);
     }
     let questions = pickQuestions();
+
+    // 정답률(0~1)을 백분위로. 문항 수와 무관하게 같은 곡선을 씁니다.
+    const CURVE = [2,10,30,55,78,92,99];
+    function percentile(p){
+      const x = Math.max(0, Math.min(1, p)) * (CURVE.length - 1);
+      const i = Math.min(Math.floor(x), CURVE.length - 2), f = x - i;
+      return Math.round(CURVE[i] + (CURVE[i+1] - CURVE[i]) * f);
+    }
 
     let index=0, score=0, streak=0, best=0, log=[], answered=false;
     const $=id=>document.getElementById(id);
@@ -379,14 +389,14 @@
 
     function showResult(){
       const n=questions.length, pct=Math.round(score/n*100);
-      const rank=[2,10,30,55,78,92,99][score]; // MVP: 임시 분포. 실서비스는 누적 응답 기반
+      const rank=percentile(score/n); // MVP: 임시 분포. 실서비스는 누적 응답 기반
       $('scoreText').textContent=`${score} / ${n}`; $('scoreBig').textContent=`${pct}점`;
       const top=100-rank; $('pct').textContent=`최다 연속 정답 ${best}`;
       $('rankText').innerHTML=`당신은 <b>상위 ${top}%</b>입니다`;
       const N=21, me=Math.round((100-top)/100*(N-1));
       $('dist').innerHTML=Array.from({length:N},(_,i)=>{const z=(i-(N-1)/2)/((N-1)/4.2); const h=Math.round(14+86*Math.exp(-z*z/2)); return `<i class="${i<me?'past':i===me?'me':''}" style="--h:${h}%"></i>`;}).join('');
       requestAnimationFrame(()=>requestAnimationFrame(()=>$('dist').classList.add('go')));
-      const t=TYPES.find(t=>score>=t.min); $('typeName').textContent=t.name; $('typeDesc').textContent=t.desc;
+      const t=resultType(); $('typeName').textContent=t.name; $('typeDesc').textContent=t.desc;
       track('quiz_completed',{score, total:n, top_percent:top, result_type:t.name, best_streak:best});
       $('resultText').innerHTML = score===n ? '정확해요. 오래 살아남는 광고의 신호를 잘 읽고 있어요.<br>동료 마케터도 맞힐 수 있을까요?' : score>=n/2 ? '오래 살아남는 광고를 꽤 잘 짚어냈어요.<br>동료 마케터에게도 물어보세요.' : '첫인상만으로는 어렵죠.<br>그래서 실제 운영 데이터를 함께 봐야 합니다.';
       const missed=questions.filter((_,k)=>!log[k]).map(q=>q.brand);
@@ -419,7 +429,7 @@
     function sendFeedback(){
       const text=$('fbText').value.trim();
       if(!fbRate && !text){ $('fbHint').textContent='점수를 고르거나, 한 줄만 남겨주세요.'; return; }
-      const t=TYPES.find(t=>score>=t.min);
+      const t=resultType();
       track('feedback_submitted',{rating:fbRate||null, text, has_text:!!text, text_length:text.length, score, total:questions.length, result_type:t.name});
       $('fbSend').disabled=true;
       $('feedback').classList.add('done');
@@ -428,7 +438,7 @@
     }
 
     async function shareGame(){
-      const t=TYPES.find(t=>score>=t.min); track('share_clicked',{score, result_type:t.name});
+      const t=resultType(); track('share_clicked',{score, result_type:t.name});
       const text=`광고 생존 감별 테스트 ${score}/${questions.length}, 나는 "${t.name}" 마케터. 실제로 더 오래 게재된 광고, 당신도 맞혀보세요.`;
       // OS/브라우저 기본 공유 시트를 먼저 시도
       if(navigator.share){
